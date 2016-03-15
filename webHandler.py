@@ -49,7 +49,7 @@ class WebHandler(object):
 
             page = urllib2.urlopen(req, timeout=20).read()
 
-            if type == 'jpg':
+            if type != '':
                 return page
 
             # decode to Unicode
