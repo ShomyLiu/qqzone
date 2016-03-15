@@ -24,9 +24,10 @@ class QQ(object):
     qq class for: loginning, scray data
     '''
 
-    def __init__(self, qq='', pwd=''):
+    def __init__(self, qq='', pwd='', method='2'):
         self.qq = qq
         self.pwd = pwd
+        self.login_method = method
         self.r = Web()
         self.appid = "549000912"
         self.js_ver = "10151"
@@ -44,8 +45,10 @@ class QQ(object):
         The main process for login
         '''
         self.getLogin_sig()
-        #  self.loginWithQR()
-        self.loginWithAccout()
+        if self.login_method == '2':
+            self.loginWithAccout()
+        else:
+            self.loginWithQR()
 
     def loginWithQR(self):
         '''
@@ -218,7 +221,8 @@ class QQ(object):
         try:
             from selenium import webdriver
             driver = webdriver.PhantomJS()
-            driver.get('script/tmp.html') collect = driver.find_element_by_id('hello').text
+            driver.get('script/tmp.html')
+            collect = driver.find_element_by_id('hello').text
             driver.quit()
         except:
             raise QQException('Verify failed, please use QRCard to login')
@@ -242,7 +246,6 @@ class QQ(object):
             self.verycode = verify_res['randstr']
         else:
             print '验证码输入错误,请重新登录!'
-            print verify_res
 
     def startFile(self, data, type):
         '''
@@ -286,6 +289,5 @@ class QQ(object):
         }
         self.r.Request(url, data=para)
         self.login_sig = self.r.getCookie('pt_login_sig')
-        print self.login_sig
         if self.login_sig == "":
             raise QQException("Error in getting login_sig")
