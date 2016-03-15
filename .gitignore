@@ -10,3 +10,6 @@ test_qq.py
 *.jpg
 *.png
 
+# log
+*.log
+
