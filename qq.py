@@ -32,6 +32,7 @@ class QQ(object):
         self.appid = "549000912"
         self.js_ver = "10151"
         self.action = "3-16-1457838106926"
+        self.login_flag = False
 
         self.login_sig = ""
         self.verifycode = ""
@@ -40,15 +41,125 @@ class QQ(object):
         self.pt_verifysession_v1 = ""
         self.g_tk = ""
 
+        self.picUrl = []
+
     def login(self):
         '''
         The main process for login
+        two ways: accout+pwd && QR
         '''
         self.getLogin_sig()
         if self.login_method == '2':
             self.loginWithAccout()
         else:
             self.loginWithQR()
+
+        if self.login_flag:
+            self.getG_TK()
+
+    def getAlbumList(self, qq=''):
+        '''
+        get the albulmlist of qq=qq
+        '''
+        if qq == '':
+            qq = self.qq
+        url = 'http://h5.qzone.qq.com/proxy/domain/alist.photo.qq.com/fcgi-bin/fcg_list_album_v3'
+        para ={
+            '_': time.time(),
+            'appid': 4,
+            'callback': 'shine0_Callback',
+            'callbackFun': 'shine0',
+            'filter': 1,
+            'format': 'jsonp',
+            'g_tk': self.g_tk,
+            'handset': 4,
+            'hostUin': qq,
+            'idcNum': 0,
+            'inCharset': 'utf-8',
+            'needUserInfo': 1,
+            'notice': 0,
+            'outCharset': 'utf-8',
+            'pageNumModeClass': 15,
+            'pageNumModeSort': 40,
+            'plat': 'qzone',
+            'source': 'qzone',
+            't': self.getRandomT(),
+            'uin': self.qq
+        }
+        rtn_data= self.r.Request(url, data=para, headers={'host': 'h5.qzone.qq.com'})
+        rtn_data = re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0]
+        albumList = json.loads(rtn_data)['data']['albumListModeSort']
+        for album in albumList:
+            if album['allowAccess'] == 0:
+                print qq, ':', album['name'].encode('utf-8'), 'is not access'
+                continue
+            self.picUrl.extend(self.getPicUrl(album['id'], album['total'], qq))
+        print len(self.picUrl)
+
+    def getPicUrl(self, topicId, total, qq):
+        '''
+        According to the topicId, get all the pics in this album
+        return a list : urls
+        '''
+
+        picUrls = []
+        pageNum = 30
+        pages = total / pageNum
+        if total % pageNum > 0:
+            pages += 1
+        url = 'http://h5.qzone.qq.com/proxy/domain/tjplist.photo.qq.com/fcgi-bin/cgi_list_photo'
+        para = {
+            'g_tk': self.g_tk,
+            'callback': 'shine2_Callback',
+            't': self.getRandomT(),
+            'mode': 0,
+            'idcNum': 0,
+            'hostUin': qq,
+            'topicId': topicId,
+            'noTopic': 0,
+            'uin': self.qq,
+            'pageStart': 0,
+            'pageNum': pageNum,
+            'skipCmtCount': 0,
+            'singleurl': 1,
+            'batchId': '',
+            'notice': 0,
+            'appid': 4,
+            'inCharset': 'utf-8',
+            'outCharset': 'utf-8',
+            'source': 'qzone',
+            'plat': 'qzone',
+            'outstyle': 'json',
+            'format': 'jsonp',
+            'json_esc': 1,
+            'callbackFun': 'shine2',
+            '_': time.time()
+        }
+        for page in range(pages):
+            para['pageStart'] = page * pageNum
+            rtn_data = self.r.Request(url, para)
+            rtn_data = re.findall(r'shine2_Callback\(([\s\S]*?)\);', rtn_data)[0]
+            rtnData = json.loads(rtn_data)
+            photoList = rtnData['data']['photoList']
+            picUrls.extend(list(map(lambda photo: photo['url'], photoList)))
+
+        return picUrls
+
+    def getG_TK(self):
+        '''
+        get a parameter : g_tk
+        '''
+        hash = 5381
+        p_skey = self.r.getCookie('p_skey') or self.r.getCookie('skey')
+        for c in p_skey:
+            hash += (hash << 5) + ord(c)
+        self.g_tk = hash & 0x7fffffff
+
+    def getRandomT(self):
+        '''
+        generate a random number of 7 digits for a post parameter, though it is not necessary
+        '''
+        return ''.join([random.choice('0123456789') for i in range(9)])
 
     def loginWithQR(self):
         '''
@@ -93,6 +204,7 @@ class QQ(object):
                 _li = re.findall(r"'([^']+)'", rtnHtml)
                 if _li[0] == '0':
                     print '认证成功: ', _li[-1].encode('utf-8')
+                    self.login_flag = True
                     break
                 elif _li[0] == '67':
                     print '认证中....'
@@ -143,8 +255,11 @@ class QQ(object):
             'aid': self.appid,
             'daid': 5
         }
-        ptuUI_BC = self.r.Request(url, data=para, headers={"Host": 'ptlogin2.qq.com'})
-        print ptuUI_BC
+        pt_BC = self.r.Request(url, data=para, headers={"Host": 'ptlogin2.qq.com'})
+        _li = re.findall(r"'([^']+)'", pt_BC)
+        if _li[-3] == '0':
+            print 'login success,', _li[-1]
+        self.login_flag = True
 
     def getPwdEncryption(self):
         '''
