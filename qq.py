@@ -87,8 +87,14 @@ class QQ(object):
             'uin': self.qq
         }
         rtn_data= self.r.Request(url, data=para, headers={'host': 'h5.qzone.qq.com'})
-        rtn_data = re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0]
-        albumList = json.loads(rtn_data)['data']['albumListModeSort']
+        rtn_data = json.loads(re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0])
+        if rtn_data['code'] != 0:  # no access
+            print qq, 'no access to enter qqzone'
+            return
+        albumList = rtn_data['data']['albumListModeSort']
+        if not albumList:  # no albumlist
+            print qq, 'albumList is empty'
+            return
         for album in albumList:
             if album['allowAccess'] == 0:
                 print qq, ':', album['name'].encode('utf-8'), 'is not access'
@@ -211,10 +217,10 @@ class QQ(object):
                 elif _li[0] == '66':
                     print '二维码未失效，请扫描登录'
                 elif _li[0] == '65':
-                    print '二维码已经失效，请关闭当前二维码，重新扫面'
+                    print '二维码已经失效，请关闭当前二维码，重新扫描'
                     break
 
-                time.sleep(4)
+                time.sleep(2)
 
             if _li[0] =='0':
                 self.r.Request(_li[2])
