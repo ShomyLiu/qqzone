@@ -92,5 +92,3 @@ class WebHandler(object):
                     return cookie.value
             else:
                 return ''
-
-

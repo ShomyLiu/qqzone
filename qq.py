@@ -63,6 +63,7 @@ class QQ(object):
         '''
         if qq == '':
             qq = self.qq
+        self.picUrl = []
         url = 'http://h5.qzone.qq.com/proxy/domain/alist.photo.qq.com/fcgi-bin/fcg_list_album_v3'
         para ={
             '_': time.time(),
@@ -100,7 +101,6 @@ class QQ(object):
                 print qq, ':', album['name'].encode('utf-8'), 'is not access'
                 continue
             self.picUrl.extend(self.getPicUrl(album['id'], album['total'], qq))
-        print len(self.picUrl)
 
     def getPicUrl(self, topicId, total, qq):
         '''
@@ -147,7 +147,7 @@ class QQ(object):
             rtn_data = re.findall(r'shine2_Callback\(([\s\S]*?)\);', rtn_data)[0]
             rtnData = json.loads(rtn_data)
             photoList = rtnData['data']['photoList']
-            picUrls.extend(list(map(lambda photo: photo['url'], photoList)))
+            picUrls.extend(list(map(lambda photo: (photo['url'], photo['phototype']), photoList)))
 
         return picUrls
 
