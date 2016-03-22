@@ -61,10 +61,13 @@ class Work(threading.Thread):
         '''
         while True:
             try:
-                do_works, args = self.work_queue.get(block=False)
-                do_works(*args)
-                time.sleep(0.01)
-                self.work_queue.task_done()
+                if not self.work_queue.empty():
+                    do_works, args = self.work_queue.get(block=False)
+                    do_works(*args)
+                    time.sleep(0.01)
+                    self.work_queue.task_done()
+                else:
+                    break
             except Exception, e:
                 print str(e)
                 break
