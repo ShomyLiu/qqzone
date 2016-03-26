@@ -21,6 +21,7 @@
 - 只实现了爬取相册的功能，其他模块可自己添加。
 
 ### 参考
-[1.lufei]
-[2](https://github.com/yoyzhou/weibo_scrapy)
-[3](http://www.open-open.com/home/space-5679-do-blog-id-3247.html)
+- [1.**lufei**](https://lufei.so/)
+
+- [2](https://github.com/yoyzhou/weibo_scrapy)
+- [3](http://www.open-open.com/home/space-5679-do-blog-id-3247.html)
