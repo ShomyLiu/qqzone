@@ -49,6 +49,7 @@ class QQ(object):
         two ways: accout+pwd && QR
         '''
         self.getLogin_sig()
+
         if self.login_method == '2':
             self.loginWithAccout()
         else:
@@ -116,7 +117,7 @@ class QQ(object):
         url = 'http://h5.qzone.qq.com/proxy/domain/tjplist.photo.qq.com/fcgi-bin/cgi_list_photo'
         para = {
             'g_tk': self.g_tk,
-            'callback': 'shine2_Callback',
+            'callback': 'shine0_Callback',
             't': self.getRandomT(),
             'mode': 0,
             'idcNum': 0,
@@ -138,14 +139,17 @@ class QQ(object):
             'outstyle': 'json',
             'format': 'jsonp',
             'json_esc': 1,
-            'callbackFun': 'shine2',
+            'callbackFun': 'shine0',
             '_': time.time()
         }
         for page in range(pages):
             para['pageStart'] = page * pageNum
-            rtn_data = self.r.Request(url, para)
-            rtn_data = re.findall(r'shine2_Callback\(([\s\S]*?)\);', rtn_data)[0]
+            rtn_data = self.r.Request(url, para, headers={'Host': 'h5.qzone.com'})
+            rtn_data = re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0]
             rtnData = json.loads(rtn_data)
+            print rtnData['code']
+            if rtnData['code'] != 0:
+                print 'skip:', topicId
             photoList = rtnData['data']['photoList']
             picUrls.extend(list(map(lambda photo: (photo['url'], photo['phototype']), photoList)))
 
@@ -264,6 +268,7 @@ class QQ(object):
         pt_BC = self.r.Request(url, data=para, headers={"Host": 'ptlogin2.qq.com'})
         _li = re.findall(r"'([^']+)'", pt_BC)
         if _li[-3] == '0':
+            self.r.Request(_li[2])
             print 'login success,', _li[-1]
         self.login_flag = True
 

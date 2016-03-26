@@ -17,6 +17,11 @@ class ScrapyHandler(object):
     handle to manager threadings
     '''
     def __init__(self, data, thread_num, func):
+        '''
+        data:
+        thread_num:
+        func: the work func
+        '''
         self.work_queue = Queue.Queue()
         self.threads = []
         self.func = func
