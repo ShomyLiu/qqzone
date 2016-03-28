@@ -91,15 +91,15 @@ class QQ(object):
         rtn_data= self.r.Request(url, data=para, headers={'host': 'h5.qzone.qq.com'})
         rtn_data = json.loads(re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0])
         if rtn_data['code'] != 0:  # no access
-            print qq, 'no access to enter qqzone'
+            print qq, ': no access to enter qqzone'
             return
         albumList = rtn_data['data']['albumListModeSort']
         if not albumList:  # no albumlist
-            print qq, 'albumList is empty'
+            print qq, ': albumList is empty'
             return
         for album in albumList:
             if album['allowAccess'] == 0:
-                print qq, ':', album['name'].encode('utf-8'), 'is not access'
+                print qq, ':', album['name'].encode('utf-8'), ' is not access'
                 continue
             self.picUrl.extend(self.getPicUrl(album['id'], album['total'], qq))
 
@@ -147,11 +147,10 @@ class QQ(object):
             rtn_data = self.r.Request(url, para, headers={'Host': 'h5.qzone.com'})
             rtn_data = re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0]
             rtnData = json.loads(rtn_data)
-            print rtnData['code']
             if rtnData['code'] != 0:
-                print 'skip:', topicId
+                print 'skip :', topicId
             photoList = rtnData['data']['photoList']
-            picUrls.extend(list(map(lambda photo: (photo['url'], photo['phototype']), photoList)))
+            picUrls.extend(list(map(lambda photo: (photo['owner'], photo['url'], photo['phototype']), photoList)))
 
         return picUrls
 
