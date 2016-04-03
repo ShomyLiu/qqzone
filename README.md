@@ -11,6 +11,7 @@
 - webHandler.py: 对网络请求的一个简单封装
 - scrapyHandler.py: 多线程模块的一个封装
 - qq.py: 模拟登录qq,以及爬取qq相册
+- myLog.py: 简单的封装了日志模块
 - test.py 提供一份测试代码，从中可以知道用法
 
 ### 使用
