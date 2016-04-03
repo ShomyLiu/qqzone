@@ -9,6 +9,7 @@ import time
 import os
 import sys
 import json
+import myLog
 from webHandler import WebHandler as Web
 
 
@@ -91,16 +92,24 @@ class QQ(object):
         rtn_data= self.r.Request(url, data=para, headers={'host': 'h5.qzone.qq.com'})
         rtn_data = json.loads(re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0])
         if rtn_data['code'] != 0:  # no access
-            print qq, ': no access to enter qqzone'
+            # print qq, ': no access to enter qqzone'
+            myLog.logInfo(qq + ' : no access to enter qqzone')
             return
         albumList = rtn_data['data']['albumListModeSort']
         if not albumList:  # no albumlist
-            print qq, ': albumList is empty'
+            #  print qq, ': albumList is empty'
+            myLog.logInfo(qq + ' : albumList is empty')
             return
+        myLog.logInfo(qq + ': total ' + str(len(albumList)) + ' albums')
         for album in albumList:
             if album['allowAccess'] == 0:
-                print qq, ':', album['name'].encode('utf-8'), ' is not access'
+                try:
+                    myLog.logInfo(qq + ' : ' + album['name'].encode('utf-8') + ' is not access')
+                except:
+                    myLog.logInfo(qq + ' : ' + album['name'].encode('gbk') + ' is not access')
                 continue
+
+            myLog.logInfo(qq + ' : ' + album['name'].encode('gbk') + ' is downloading')
             self.picUrl.extend(self.getPicUrl(album['id'], album['total'], qq))
 
     def getPicUrl(self, topicId, total, qq):
@@ -143,14 +152,20 @@ class QQ(object):
             '_': time.time()
         }
         for page in range(pages):
-            para['pageStart'] = page * pageNum
-            rtn_data = self.r.Request(url, para, headers={'Host': 'h5.qzone.com'})
-            rtn_data = re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0]
-            rtnData = json.loads(rtn_data)
-            if rtnData['code'] != 0:
-                print 'skip :', topicId
-            photoList = rtnData['data']['photoList']
-            picUrls.extend(list(map(lambda photo: (photo['owner'], photo['url'], photo['phototype']), photoList)))
+            try:
+                para['pageStart'] = page * pageNum
+                rtn_data = self.r.Request(url, para, headers={'Host': 'h5.qzone.com'})
+                rtn_data = re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0]
+                rtnData = json.loads(rtn_data)
+                if rtnData['code'] != 0:
+                    myLog.logInfo('Skip : ' + topicId)
+                    continue
+                photoList = rtnData['data']['photoList']
+                picUrls.extend(list(map(lambda photo: (photo['owner'], photo['url'], photo['phototype']), photoList)))
+            except Exception, e:
+                myLog.logWarn(str(e))
+                self.checklogin()
+                continue
 
         return picUrls
 
@@ -212,15 +227,24 @@ class QQ(object):
                 rtnHtml = self.r.Request(checkUrl, data=checkPara)
                 _li = re.findall(r"'([^']+)'", rtnHtml)
                 if _li[0] == '0':
-                    print '认证成功: ', _li[-1].encode('utf-8')
+                    try:
+                        myLog.logDebug('认证成功: ' + self.qq + ':' + _li[-1].encode('utf-8'))
+                        #  print '认证成功: ', _li[-1].encode('utf-8')
+                    except:
+                        myLog.logDebug('认证成功: ' + self.qq + ':' + _li[-1].encode('gbk'))
+                        #  print '认证成功: ', _li[-1].encode('gbk')
+
                     self.login_flag = True
                     break
                 elif _li[0] == '67':
-                    print '认证中....'
+                    #  print '认证中....'
+                    myLog.logInfo('认证中')
                 elif _li[0] == '66':
-                    print '二维码未失效，请扫描登录'
+                    #  print '二维码未失效，请扫描登录'
+                    myLog.logInfo('二维码未失效，请扫描登录')
                 elif _li[0] == '65':
-                    print '二维码已经失效，请关闭当前二维码，重新扫描'
+                    #  print '二维码已经失效，请关闭当前二维码，重新扫描'
+                    myLog.logInfo('二维码已经失效，请关闭当前二维码，重新扫描')
                     break
 
                 time.sleep(2)
@@ -268,7 +292,8 @@ class QQ(object):
         _li = re.findall(r"'([^']+)'", pt_BC)
         if _li[-3] == '0':
             self.r.Request(_li[2])
-            print 'login success,', _li[-1]
+            # print 'login success,', _li[-1]
+            myLog.logDebug('login success,' + self.qq)
         self.login_flag = True
 
     def getPwdEncryption(self):
