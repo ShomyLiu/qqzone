@@ -59,6 +59,34 @@ class QQ(object):
         if self.login_flag:
             self.getG_TK()
 
+    def publishMessage(self, content):
+        '''
+        an api for publish message
+        '''
+        url = 'http://taotao.qzone.qq.com/cgi-bin/emotion_cgi_publish_v6?g_tk=%s' %self.g_tk
+        para = {
+            'qzreferrer': 'http://user.qzone.qq.com/2335509736',
+            'syn_tweet_verson': 1,
+            'paramstr': 1,
+            'pic_template': '',
+            'richtype': '',
+            'richval': '',
+            'special_url': '',
+            'subrichtype': '',
+            'who': 1,
+            'con': content,
+            'feedversion': 1,
+            'ver': 1,
+            'ugc_right': 1,
+            'to_tweet': 0,
+            'to_sign': 0,
+            'hostuin': self.qq,
+            'code_version': 1,
+            'format': 'fs',
+        }
+        self.r.Request(url, data=para, method='POST')
+        myLog.logInfo('publish message success: %s' %content)
+
     def getAlbumList(self, qq=''):
         '''
         get the albulmlist of qq=qq
@@ -92,15 +120,17 @@ class QQ(object):
         rtn_data= self.r.Request(url, data=para, headers={'host': 'h5.qzone.qq.com'})
         rtn_data = json.loads(re.findall(r'shine0_Callback\(([\s\S]*?)\);', rtn_data)[0])
         if rtn_data['code'] != 0:  # no access
-            # print qq, ': no access to enter qqzone'
             myLog.logInfo(qq + ' : no access to enter qqzone')
             return
-        albumList = rtn_data['data']['albumListModeSort']
+        try:
+            albumList = rtn_data['data']['albumListModeSort']
+        except:
+            albumList = [album for albums in rtn_data['data']['albumListModeClass'] for album in albums['albumList']]
+
         if not albumList:  # no albumlist
-            #  print qq, ': albumList is empty'
             myLog.logInfo(qq + ' : albumList is empty')
             return
-        myLog.logInfo(qq + ': total ' + str(len(albumList)) + ' albums')
+        #  myLog.logInfo(qq + ': total ' + str(len(albumList)) + ' albums')
         for album in albumList:
             if album['allowAccess'] == 0:
                 try:
@@ -109,7 +139,7 @@ class QQ(object):
                     myLog.logInfo(qq + ' : ' + album['name'].encode('gbk') + ' is not access')
                 continue
 
-            myLog.logInfo(qq + ' : ' + album['name'].encode('gbk') + ' is downloading')
+            myLog.logInfo(qq + ' : ' + album['name'] + ' is downloading')
             self.picUrl.extend(self.getPicUrl(album['id'], album['total'], qq))
 
     def getPicUrl(self, topicId, total, qq):
@@ -161,10 +191,10 @@ class QQ(object):
                     myLog.logInfo('Skip : ' + topicId)
                     continue
                 photoList = rtnData['data']['photoList']
-                picUrls.extend(list(map(lambda photo: (photo['owner'], photo['url'], photo['phototype']), photoList)))
+                picUrls.extend(list(map(lambda photo: (qq, photo['url'], photo['phototype']), photoList)))
             except Exception, e:
                 myLog.logWarn(str(e))
-                self.checklogin()
+                #  self.checklogin()
                 continue
 
         return picUrls
@@ -203,7 +233,10 @@ class QQ(object):
                 'daid': 5,
             }
             qrCard = self.r.Request(url, data=para, type='png')
-            self.startFile(qrCard, 'png')
+            qrpng = file('qrcard.png', 'wb')
+            qrpng.write(qrCard)
+            qrpng.close()
+            # self.startFile(qrCard, 'png')
             print 'please scan the qrCard using your phone'
 
             while True:
