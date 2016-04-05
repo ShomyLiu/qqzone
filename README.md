@@ -24,7 +24,17 @@ pwd=YouPassword
 numthread=5
 ```
 当然也可以修改一下，`test.py`文件,可以自己手动输入帐号密码.
+下面的示例是发表说说的一个demo：
+```
+In [1]: from qq import QQ
+In [2]: my = QQ('YourQQ', 'YouPWD')
 
+In [3]: my.login()
+
+In [4]: my.publishMessage('发个说说')
+2016-04-05 17:21:52,688 - root : INFO publish message success: 发个说说
+```
+可以去看看有没有发送成功。
 
 ### 后续
 - 不足
