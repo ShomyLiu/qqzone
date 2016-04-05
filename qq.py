@@ -26,8 +26,8 @@ class QQ(object):
     '''
 
     def __init__(self, qq='', pwd='', method='2'):
-        self.qq = qq
-        self.pwd = pwd
+        self.qq = str(qq)
+        self.pwd = str(pwd)
         self.login_method = method
         self.r = Web()
         self.appid = "549000912"
