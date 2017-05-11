@@ -94,9 +94,9 @@ class QQ(object):
         if qq == '':
             qq = self.qq
         self.picUrl = []
-        url = 'http://h5.qzone.qq.com/proxy/domain/alist.photo.qq.com/fcgi-bin/fcg_list_album_v3'
+        url = 'https://h5.qzone.qq.com/proxy/domain/alist.photo.qq.com/fcgi-bin/fcg_list_album_v3'
         para ={
-            '_': time.time(),
+            '_': int(time.time()),
             'appid': 4,
             'callback': 'shine0_Callback',
             'callbackFun': 'shine0',
@@ -105,7 +105,7 @@ class QQ(object):
             'g_tk': self.g_tk,
             'handset': 4,
             'hostUin': qq,
-            'idcNum': 0,
+            'idcNum': 5,
             'inCharset': 'utf-8',
             'needUserInfo': 1,
             'notice': 0,
@@ -153,7 +153,7 @@ class QQ(object):
         pages = total / pageNum
         if total % pageNum > 0:
             pages += 1
-        url = 'http://h5.qzone.qq.com/proxy/domain/tjplist.photo.qq.com/fcgi-bin/cgi_list_photo'
+        url = 'https://h5.qzone.qq.com/proxy/domain/tjplist.photo.qq.com/fcgi-bin/cgi_list_photo'
         para = {
             'g_tk': self.g_tk,
             'callback': 'shine0_Callback',
